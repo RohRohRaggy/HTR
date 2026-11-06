@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Page setup: load the shared styles and run the dashboard script after the HTML is parsed. -->
+<meta charset="UTF-8">
+<title>ESP32 Race Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+</head>
+<body>
+
+<!-- First screen: collect the race settings before showing the dashboard. -->
+<section class="start-screen" id="startScreen" aria-labelledby="startScreenTitle">
+<form class="start-card" id="raceSetupForm" novalidate>
+<p class="start-eyebrow">RACE TIMER</p>
+<h1 id="startScreenTitle">Set up your race</h1>
+<p class="start-intro">Choose the race settings before opening the dashboard.</p>
+<div class="setup-fields">
+<!-- Race length is a whole number of laps, and starts at 50 laps by default. -->
+<label class="setup-field" for="setupLapTarget">
+<span>Lap count</span>
+<input id="setupLapTarget" type="number" min="1" step="1" value="50" inputmode="numeric">
+</label>
+<!-- The dashboard supports between 1 and 32 lanes; 2 lanes are shown by default. -->
+<label class="setup-field" for="setupLaneCount">
+<span>Number of lanes</span>
+<input id="setupLaneCount" type="number" min="1" max="32" step="1" value="2" inputmode="numeric">
+<span class="setup-help">Choose 1 to 32 lanes.</span>
+</label>
+<!-- Lap distance is optional; the script can use it to calculate speed. -->
+<label class="setup-field" for="setupLapDistance">
+<span>Lap distance (meters)</span>
+<input id="setupLapDistance" type="number" min="0" step="any" placeholder="Optional" inputmode="decimal">
+<span class="setup-help">Needed to calculate lap speed.</span>
+</label>
+</div>
+<!-- JavaScript writes validation messages here; role=alert announces them to assistive technology. -->
+<p class="setup-error" id="setupError" role="alert" hidden></p>
+<!-- Cancel is hidden during initial setup and can be shown when editing existing settings. -->
+<div class="setup-actions">
+<button class="setup-button setup-cancel" id="cancelSetupButton" type="button" hidden>Cancel</button>
+<button class="setup-button setup-submit" id="setupSubmitButton" type="submit">Save settings &amp; continue</button>
+</div>
+</form>
+</section>
+
+<!-- Second screen: let the user establish the ESP32 connection before the race starts. -->
+<section class="start-screen" id="connectionScreen" aria-labelledby="connectionScreenTitle" hidden>
+<div class="start-card">
+<p class="start-eyebrow">RACE TIMER</p>
+<h1 id="connectionScreenTitle">Connect your ESP32</h1>
+<p class="start-intro">Connect the race timer to start a race, or open the dashboard without it.</p>
+<!-- Connection progress is announced to screen readers as its text changes. -->
+<p class="connection-step-status" id="setupConnectionStatus" role="status" aria-live="polite">Ready to connect.</p>
+<div class="setup-actions">
+<button class="setup-button setup-cancel" id="editSetupButton" type="button">Back to settings</button>
+<button class="setup-button setup-submit" id="connectBeforeStartButton" type="button">Connect ESP32</button>
+</div>
+<button class="setup-button setup-cancel dashboard-offline-button" id="viewDashboardOfflineButton" type="button">View dashboard without ESP32</button>
+</div>
+</section>
+
+<!-- Start sequence: the script updates the message and lights, then hides this screen. -->
+<section class="race-start" id="raceStart" aria-label="Race start sequence" aria-live="polite" hidden>
+<div class="start-light-box">
+<p class="start-eyebrow" id="startLightsEyebrow">GET READY</p>
+<h1 id="startLightsStatus">Preparing to start</h1>
+<!-- Five pairs of visual lights; aria-hidden prevents decorative lights being read aloud. -->
+<div class="start-lights" aria-hidden="true">
+<span class="start-light-column"><i></i><i></i></span>
+<span class="start-light-column"><i></i><i></i></span>
+<span class="start-light-column"><i></i><i></i></span>
+<span class="start-light-column"><i></i><i></i></span>
+<span class="start-light-column"><i></i><i></i></span>
+</div>
+<!-- These are only shown if a false start occurs; the button allows another start attempt. -->
+<p class="false-start-detail" id="falseStartDetail" hidden>Resetting the timer and try again.</p>
+<button class="setup-button setup-submit" id="retryStartButton" type="button" hidden>Reset timer &amp; retry start</button>
+</div>
+</section>
+
+<!-- Finish screen: show the race summary and final positions after the lap target is reached. -->
+<section class="finish-screen" id="finishScreen" aria-labelledby="finishTitle" hidden>
+<div class="finish-card">
+<p class="finish-eyebrow">RACE COMPLETE</p>
+<h1 id="finishTitle">Chequered flag</h1>
+<!-- JavaScript fills in a short race summary and the results rows below. -->
+<p class="finish-summary" id="finishSummary"></p>
+<div class="finish-results-scroll">
+<table class="finish-results">
+<thead><tr><th>Pos</th><th>#</th><th>Driver</th><th>Laps</th><th>Last lap</th><th>Finish time</th><th>Best lap</th></tr></thead>
+<tbody id="finishResultsBody"></tbody>
+</table>
+</div>
+<div class="setup-actions">
+<!-- Return to the live dashboard without leaving the page. -->
+<button class="setup-button setup-submit" id="returnToDashboardButton" type="button">View dashboard</button>
+</div>
+</div>
+</section>
+
+<!-- Main race view: starts hidden and is displayed after setup and connection are complete. -->
+<main class="dashboard" id="dashboard" hidden>
+<!-- Race-wide summary metrics and controls for race settings and the ESP32 connection. -->
+<section class="top-layout" aria-label="Race dashboard">
+<div class="metrics">
+<!-- Each metric value has an ID so JavaScript can replace its initial placeholder. -->
+<section class="metric">
+<h2>Fastest lap</h2>
+<p class="metric-value" id="bestLap">--.---</p>
+</section>
+<section class="metric">
+<h2>Highest speed</h2>
+<p class="metric-value" id="highestSpeed">--</p>
+<p class="metric-detail" id="lapDistance">Lap distance not set</p>
+</section>
+<section class="metric">
+<h2>Leader lap</h2>
+<p class="metric-value" id="lapsToGo">0/50</p>
+</section>
+<section class="metric">
+<h2>Live race timer</h2>
+<p class="metric-value" id="raceTime">0.0 s</p>
+<p class="metric-detail" id="raceStatus" aria-live="polite">Ready for first trigger</p>
+</section>
+<section class="metric weather-metric">
+<h2>Weather</h2>
+<p class="metric-value" id="weather">--°C</p>
+<p class="weather-condition" id="weatherCondition" aria-live="polite">Allow location for local weather</p>
+<button class="weather-button" id="weatherButton" type="button">Use my location</button>
+</section>
+</div>
+
+<!-- Compact controls: the menu opens setup/connect actions, while status reports connection state. -->
+<nav class="controls" aria-label="Race controls">
+<button class="menu-toggle" id="menuToggle" type="button" aria-label="Open settings menu" aria-expanded="false" aria-controls="raceMenu" title="Settings">
+<svg viewBox="0 0 80 42" aria-hidden="true"><path d="M5 7h70M5 21h70M5 35h70" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/></svg>
+</button>
+<div class="menu-panel" id="raceMenu" hidden>
+<section class="spotify-panel" aria-label="Spotify race playlist">
+<h2>Race playlist</h2>
+<iframe
+class="spotify-player"
+title="Spotify race playlist"
+src="https://open.spotify.com/embed/playlist/4a3rhB43Mf0PvCpRYDvgZZ?utm_source=generator&amp;theme=0"
+width="100%"
+height="352"
+allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+loading="lazy"
+referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</section>
+<section class="soundcloud-panel" aria-label="SoundCloud starting-light sound">
+<h2>Starting-light sound</h2>
+<iframe
+id="soundcloudPlayer"
+title="SoundCloud F1 starting lights sound"
+src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fcarlos-alonso-645778904%2Ff1-starting-lights-sound&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false&amp;visual=false"
+allow="autoplay"
+loading="eager"
+referrerpolicy="strict-origin-when-cross-origin"></iframe>
+<p class="soundcloud-status" id="soundcloudStatus" role="status" aria-live="polite">The SoundCloud start sound will play with the lights.</p>
+</section>
+<button class="control-button" id="raceSetupButton" type="button">Race setup</button>
+<button class="control-button" id="connectButton" type="button">Connect ESP32</button>
+<button class="control-button" id="disconnectButton" type="button" disabled>Disconnect ESP32</button>
+</div>
+<p class="connection-status" id="connectionStatus" aria-live="polite">Not connected</p>
+</nav>
+</section>
+
+<!-- Lower dashboard panels: lane-by-lane timing results and the optional camera stream. -->
+<section class="lower-layout" aria-label="Race details">
+<!-- Horizontally scrollable timing table; each cell is updated for its lane during the race. -->
+<section class="lower-panel leaderboard-panel" aria-label="Race leaderboard">
+<div class="leaderboard-scroll">
+<table class="leaderboard">
+<!-- Column headings describe each lane's position, driver, lap times, deltas, speed, and status. -->
+<thead>
+<tr><th>Pos</th><th>#</th><th>Driver</th><th>Laps</th><th>Last (s)</th><th>Last delta</th><th>Best (s)</th><th>Best delta</th><th>Speed (km/h)</th><th>Status</th></tr>
+</thead>
+<!-- Lane rows are templates for the configured lanes; JavaScript shows the required rows. -->
+<tbody id="leaderboardBody">
+<tr class="lane-row" data-lane="1">
+<td class="lane-position">1</td>
+<td><input class="lane-number" data-field="number" type="text" value="1" maxlength="5" aria-label="Lane 1 car number"></td>
+<td><input class="lane-driver" data-field="driver" type="text" value="Lane 1" maxlength="24" aria-label="Lane 1 driver name"></td>
+<td class="lane-laps">0</td><td class="lane-last">--.---</td><td class="lane-last-delta">--.---</td><td class="lane-best">--.---</td><td class="lane-best-delta">--.---</td><td class="lane-speed">--</td><td class="lane-status">Ready</td>
+</tr>
+<tr class="lane-row" data-lane="2">
+<td class="lane-position">2</td>
+<td><input class="lane-number" data-field="number" type="text" value="2" maxlength="5" aria-label="Lane 2 car number"></td>
+<td><input class="lane-driver" data-field="driver" type="text" value="Lane 2" maxlength="24" aria-label="Lane 2 driver name"></td>
+<td class="lane-laps">0</td><td class="lane-last">--.---</td><td class="lane-last-delta">--.---</td><td class="lane-best">--.---</td><td class="lane-best-delta">--.---</td><td class="lane-speed">--</td><td class="lane-status">Ready</td>
+</tr>
+<tr class="lane-row" data-lane="3" hidden>
+<td class="lane-position">3</td>
+<td><input class="lane-number" data-field="number" type="text" value="3" maxlength="5" aria-label="Lane 3 car number"></td>
+<td><input class="lane-driver" data-field="driver" type="text" value="Lane 3" maxlength="24" aria-label="Lane 3 driver name"></td>
+<td class="lane-laps">0</td><td class="lane-last">--.---</td><td class="lane-last-delta">--.---</td><td class="lane-best">--.---</td><td class="lane-best-delta">--.---</td><td class="lane-speed">--</td><td class="lane-status">Ready</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- Optional camera panel: enter the XIAO camera's MJPEG stream URL to view its feed. -->
+<section class="lower-panel camera-panel" aria-label="Camera feed">
+<div class="camera-viewport">
+<!-- Placeholder is shown until a camera stream is connected. -->
+<div class="camera-placeholder" id="cameraPlaceholder">
+<svg viewBox="0 0 420 230" role="img" aria-label="Camera feed placeholder">
+<rect x="26" y="28" width="260" height="174" rx="25" fill="none" stroke="currentColor" stroke-width="18"/>
+<path d="M286 82 365 38c11-6 24 2 24 15v104c0 13-13 21-24 15l-79-44z" fill="none" stroke="currentColor" stroke-width="18" stroke-linejoin="round"/>
+</svg>
+<p class="camera-label">XIAO CAMERA FEED</p>
+</div>
+<!-- The stream image is hidden until JavaScript connects it to the entered URL. -->
+<img class="camera-feed" id="cameraFeed" alt="Live video from XIAO ESP32S3 Sense" hidden>
+</div>
+<!-- Form submits the stream URL; Stop ends the feed without submitting the form. -->
+<form class="camera-connect-form" id="cameraConnectForm">
+<label class="visually-hidden" for="cameraUrl">Camera stream URL</label>
+<input class="camera-url" id="cameraUrl" type="url" inputmode="url" placeholder="http://XIAO-IP/stream" required>
+<button class="camera-button" type="submit">Connect feed</button>
+<button class="camera-button" id="stopCameraButton" type="button">Stop</button>
+</form>
+<!-- JavaScript reports camera connection or error messages in this live status area. -->
+<p class="camera-status" id="cameraStatus" aria-live="polite">Enter the XIAO stream URL to connect.</p>
+</section>
+</section>
+</main>
+
+</body>
+</html>
+``

@@ -1,0 +1,697 @@
+*{box-sizing:border-box}
+
+/* Shared dashboard colors and base page layout. */
+:root{
+--ink:#080808;
+--paper:#f7f7f7;
+--navy:#17275f;
+}
+
+body{
+margin:0;
+min-height:100vh;
+padding:0;
+background:var(--ink);
+color:var(--ink);
+font-family:Arial, sans-serif;
+}
+
+.dashboard[hidden],.start-screen[hidden],.race-start[hidden],.finish-screen[hidden]{display:none}
+
+.start-screen{
+display:grid;
+min-height:100vh;
+place-items:center;
+padding:32px 20px;
+background:radial-gradient(ellipse at top, #202020 0, var(--ink) 68%);
+}
+
+.start-card{
+width:min(100%, 560px);
+padding:42px;
+border-radius:28px;
+background:var(--paper);
+box-shadow:0 0 20px #444;
+}
+
+.start-eyebrow{
+margin:0 0 10px;
+color:#555;
+font-size:12px;
+font-weight:700;
+letter-spacing:.18em;
+}
+
+.start-card h1{
+margin:0;
+font-size:32px;
+}
+
+.start-intro{
+margin:9px 0 28px;
+color:#555;
+line-height:1.5;
+}
+
+.setup-fields{display:grid;gap:17px}
+
+.setup-field{
+display:grid;
+gap:7px;
+font-size:14px;
+font-weight:700;
+}
+
+.setup-field input{
+width:100%;
+min-height:44px;
+padding:10px 12px;
+border:1px solid #aaa;
+border-radius:7px;
+background:#fff;
+color:var(--ink);
+font:16px Arial,sans-serif;
+}
+
+.setup-field input:focus{
+border-color:var(--navy);
+outline:2px solid #17275f33;
+}
+
+.setup-help{
+color:#666;
+font-size:12px;
+font-weight:400;
+}
+
+.setup-error{
+margin:16px 0 0;
+color:#a11;
+font-size:14px;
+line-height:1.4;
+}
+
+.setup-actions{
+display:flex;
+justify-content:flex-end;
+gap:10px;
+margin-top:24px;
+}
+
+.setup-button{
+min-height:42px;
+padding:10px 16px;
+border:1px solid #222;
+border-radius:6px;
+font:700 14px Arial,sans-serif;
+cursor:pointer;
+}
+
+.setup-submit{background:#17275f;color:#fff}
+.setup-submit:hover{background:#223982}
+.setup-cancel{background:#fff;color:#222}
+.setup-cancel:hover{background:#eee}
+.setup-button[hidden]{display:none}
+
+.dashboard-offline-button{
+width:100%;
+margin-top:12px;
+}
+
+.connection-step-status{
+min-height:22px;
+margin:0;
+color:#444;
+font-size:14px;
+}
+
+.race-start{
+position:fixed;
+z-index:10;
+inset:0;
+display:grid;
+place-items:center;
+padding:24px;
+background:radial-gradient(ellipse at center, #202020 0, var(--ink) 72%);
+color:#fff;
+}
+
+.start-light-box{
+width:min(100%, 660px);
+padding:34px 38px;
+border:1px solid #444;
+border-radius:24px;
+background:#111;
+box-shadow:0 14px 50px #000;
+text-align:center;
+}
+
+.start-light-box .start-eyebrow{color:#aaa}
+.start-light-box h1{margin:0;font-size:clamp(24px,5vw,38px)}
+.start-light-box.false-start .start-eyebrow{color:#ff646b}
+.start-light-box.false-start h1{color:#ff343d}
+.false-start-detail{margin:14px 0;color:#ccc;font-size:14px}
+.false-start-detail[hidden],.start-light-box .setup-button[hidden]{display:none}
+
+.start-lights{
+display:grid;
+grid-template-columns:repeat(5,minmax(38px,1fr));
+gap:clamp(8px,2vw,18px);
+width:min(100%,500px);
+margin:32px auto;
+padding:18px;
+border:5px solid #343434;
+border-radius:18px;
+background:#080808;
+box-shadow:inset 0 0 18px #000,0 4px 15px #000;
+}
+
+.start-light-column{
+display:grid;
+gap:9px;
+padding:9px 6px;
+border-radius:12px;
+background:#222;
+}
+
+.start-light-column i{
+display:block;
+aspect-ratio:1;
+border-radius:50%;
+background:#40090b;
+box-shadow:inset 0 0 8px #120000;
+transition:background-color .16s ease,box-shadow .16s ease;
+}
+
+.start-light-column.lit i{
+background:#ff101d;
+box-shadow:0 0 10px #ff1b26,0 0 25px #d00016,inset 0 0 7px #ffb4b8;
+}
+
+.start-light-box .setup-button{border-color:#555}
+
+.finish-screen{
+display:grid;
+min-height:100vh;
+place-items:center;
+padding:32px 20px;
+background:radial-gradient(ellipse at top, #202020 0, var(--ink) 68%);
+}
+
+.finish-card{
+width:min(100%, 900px);
+padding:38px;
+border-radius:24px;
+background:var(--paper);
+box-shadow:0 0 20px #444;
+}
+
+.finish-eyebrow{
+margin:0 0 8px;
+color:#146b39;
+font-size:12px;
+font-weight:700;
+letter-spacing:.18em;
+}
+
+.finish-card h1{margin:0;font-size:clamp(28px,5vw,40px)}
+.finish-summary{margin:10px 0 24px;color:#555}
+
+.finish-results-scroll{
+max-height:50vh;
+overflow:auto;
+border:1px solid #ccc;
+border-radius:8px;
+}
+
+.finish-results{
+width:100%;
+border-collapse:collapse;
+font-size:14px;
+font-variant-numeric:tabular-nums;
+text-align:left;
+}
+
+.finish-results th,.finish-results td{
+padding:12px 14px;
+border-bottom:1px solid #ddd;
+}
+
+.finish-results th{
+position:sticky;
+top:0;
+background:#e9e9e9;
+font-size:12px;
+text-transform:uppercase;
+}
+
+.finish-results tbody tr:first-child{
+background:#e7f6ec;
+font-weight:700;
+}
+
+.finish-results tbody tr:last-child td{border-bottom:0}
+
+.dashboard{
+width:100%;
+max-width:1600px;
+margin:0 auto;
+padding:38px;
+}
+
+.top-layout{
+display:grid;
+grid-template-columns:minmax(0, 1fr) 164px;
+gap:24px;
+align-items:start;
+}
+
+/* Race summary cards and the location-based weather tile. */
+.metrics{
+display:grid;
+grid-template-columns:repeat(5, minmax(0, 1fr));
+gap:10px;
+}
+
+.metric{
+min-width:0;
+height:194px;
+padding:36px 10px 18px;
+overflow:hidden;
+border-radius:40px;
+background:var(--paper);
+box-shadow:0 0 5px 2px #aaa;
+text-align:center;
+}
+
+.metric h2{
+min-height:38px;
+margin:0;
+font-size:15px;
+line-height:1.25;
+}
+
+.metric-value{
+margin:18px 0 0;
+font-size:30px;
+font-weight:700;
+font-variant-numeric:tabular-nums;
+overflow-wrap:anywhere;
+}
+
+.metric-detail{
+margin:7px 0 0;
+color:#555;
+font-size:12px;
+}
+
+.weather-metric{
+display:flex;
+height:auto;
+min-height:194px;
+flex-direction:column;
+align-items:center;
+}
+
+.weather-metric .metric-value{
+margin:10px 0 0;
+font-size:27px;
+}
+
+.weather-condition{
+min-height:18px;
+margin:3px 0 7px;
+color:#555;
+font-size:12px;
+line-height:1.3;
+}
+
+.weather-button{
+padding:5px 9px;
+border:1px solid #bbb;
+border-radius:5px;
+background:#fff;
+color:#222;
+font:12px Arial, sans-serif;
+cursor:pointer;
+}
+
+.weather-button:disabled{opacity:.55;cursor:wait}
+
+/* Hamburger menu and ESP32 connection controls. */
+.controls{
+position:relative;
+display:grid;
+gap:4px;
+}
+
+.menu-toggle{
+width:80px;
+height:42px;
+justify-self:end;
+padding:4px;
+border:0;
+background:transparent;
+color:white;
+cursor:pointer;
+}
+
+.menu-toggle svg{display:block;width:100%;height:100%}
+
+.control-button{
+min-height:38px;
+padding:8px 6px;
+border:1px solid #aaa;
+border-radius:0;
+background:linear-gradient(#fff, #cfcfcf);
+color:#222;
+font:14px Arial, sans-serif;
+cursor:pointer;
+}
+
+.control-button:hover{background:#fff}
+.control-button:disabled{opacity:.45;cursor:not-allowed}
+
+.menu-panel{
+position:absolute;
+z-index:5;
+top:46px;
+right:0;
+display:grid;
+width:min(360px, calc(100vw - 32px));
+max-height:calc(100vh - 80px);
+gap:8px;
+padding:12px;
+overflow-y:auto;
+border:1px solid #555;
+border-radius:12px;
+background:#080808;
+box-shadow:0 8px 24px #0009;
+}
+
+.menu-panel[hidden]{display:none}
+
+.spotify-panel{
+min-width:0;
+padding:16px;
+border-radius:12px;
+background:#101010;
+color:#fff;
+}
+
+.spotify-panel h2{
+margin:0 0 12px;
+font-size:16px;
+}
+
+.spotify-player{
+display:block;
+width:100%;
+height:352px;
+min-height:352px;
+border:0;
+border-radius:12px;
+}
+
+.soundcloud-panel{
+min-width:0;
+padding:12px;
+border-radius:12px;
+background:#101010;
+color:#fff;
+}
+
+.soundcloud-panel h2{
+margin:0 0 8px;
+font-size:16px;
+}
+
+.soundcloud-panel iframe{
+display:block;
+width:100%;
+height:166px;
+border:0;
+border-radius:8px;
+}
+
+.soundcloud-status{
+margin:8px 0 0;
+color:#bbb;
+font-size:12px;
+}
+
+.connection-status{
+margin:5px 0 0;
+color:#bbb;
+font-size:12px;
+text-align:center;
+}
+
+/* Full-width race board with scrollable lane rows and timing details. */
+.lower-layout{
+display:grid;
+grid-template-columns:minmax(0, 1fr);
+gap:16px;
+margin-top:24px;
+}
+
+.lower-panel{
+min-width:0;
+height:286px;
+padding:16px;
+border-radius:54px;
+background:var(--paper);
+}
+
+.leaderboard-panel{
+height:auto;
+max-height:390px;
+padding:0;
+overflow:hidden;
+border-radius:4px;
+background:#101010;
+}
+
+.leaderboard-scroll{
+width:100%;
+max-height:390px;
+overflow:auto;
+border-radius:inherit;
+}
+
+.leaderboard{
+width:100%;
+min-width:1250px;
+table-layout:fixed;
+border-collapse:collapse;
+background:#101010;
+color:#e8e8e8;
+font-size:12px;
+font-variant-numeric:tabular-nums;
+text-align:right;
+}
+
+.leaderboard th{
+position:sticky;
+top:0;
+z-index:1;
+height:38px;
+padding:8px 6px;
+background:#202020;
+color:#aaa;
+font-size:11px;
+font-weight:600;
+text-transform:uppercase;
+white-space:nowrap;
+}
+
+.leaderboard td{
+height:44px;
+padding:5px 6px;
+border-bottom:1px solid #292929;
+}
+
+.leaderboard th:nth-child(1){width:4%}
+.leaderboard th:nth-child(2){width:5%}
+.leaderboard th:nth-child(3){width:22%}
+.leaderboard th:nth-child(4){width:6%}
+.leaderboard th:nth-child(5),.leaderboard th:nth-child(6),.leaderboard th:nth-child(7),.leaderboard th:nth-child(8){width:10%}
+.leaderboard th:nth-child(9){width:11%}
+.leaderboard th:nth-child(10){width:12%}
+.leaderboard tbody tr:nth-child(odd){background:#171717}
+.leaderboard tbody tr:hover{background:#252525}
+.leaderboard .lane-position{color:#999;text-align:center}
+.leaderboard .lane-laps{color:#50e987;font-weight:700}
+.leaderboard .lane-last,.leaderboard .lane-last-delta,.leaderboard .lane-best,.leaderboard .lane-best-delta{color:#50e987;white-space:nowrap}
+.leaderboard .lane-speed{color:#b9d8ff;white-space:nowrap}
+.leaderboard .lane-status{text-align:center;white-space:nowrap}
+.lane-row[data-lane="1"]{border-left:4px solid #17c963}
+.lane-row[data-lane="2"]{border-left:4px solid #e3ba22}
+.lane-row[data-lane="3"]{border-left:4px solid #20bfe7}
+.lane-row[hidden]{display:none}
+
+.lane-number,.lane-driver{
+width:100%;
+min-width:0;
+padding:7px 8px;
+border:1px solid #444;
+border-radius:3px;
+background:#202020;
+color:#fff;
+font:inherit;
+text-align:left;
+}
+
+.lane-number{min-width:0;padding:5px 2px;font-size:12px;text-align:center}
+.lane-driver{min-width:0;padding:5px 4px;font-size:12px}
+.lane-number:focus,.lane-driver:focus{border-color:#50e987;outline:none}
+
+/* Camera stream viewport, URL input, and status message. */
+.camera-panel{
+display:grid;
+grid-template-rows:minmax(0, 1fr) auto auto;
+gap:8px;
+height:460px;
+padding:12px;
+border-radius:4px;
+background:#101010;
+}
+
+.camera-viewport{
+position:relative;
+display:grid;
+min-height:0;
+place-items:center;
+overflow:hidden;
+background:#050505;
+}
+
+.camera-placeholder{
+display:grid;
+position:absolute;
+inset:0;
+place-items:center;
+align-content:center;
+gap:6px;
+width:100%;
+color:#fff;
+}
+
+.camera-placeholder[hidden],.camera-feed[hidden]{display:none}
+
+.camera-placeholder svg{
+display:block;
+width:min(42%, 420px);
+height:min(70%, 210px);
+color:#eee;
+}
+
+.camera-feed{
+display:block;
+width:100%;
+height:100%;
+object-fit:contain;
+background:#050505;
+}
+
+.camera-label{
+margin:0;
+color:#ddd;
+font-size:13px;
+font-weight:700;
+}
+
+.camera-connect-form{
+display:grid;
+grid-template-columns:minmax(0, 1fr) auto auto;
+gap:8px;
+}
+
+.visually-hidden{
+position:absolute;
+width:1px;
+height:1px;
+padding:0;
+margin:-1px;
+overflow:hidden;
+clip:rect(0, 0, 0, 0);
+white-space:nowrap;
+border:0;
+}
+
+.camera-url{
+min-width:0;
+padding:9px 10px;
+border:1px solid #555;
+border-radius:3px;
+background:#202020;
+color:#fff;
+font:13px Arial, sans-serif;
+}
+
+.camera-url:focus{border-color:#50e987;outline:none}
+
+.camera-button{
+min-height:36px;
+padding:8px 12px;
+border:1px solid #555;
+border-radius:3px;
+background:#292929;
+color:#fff;
+font:13px Arial, sans-serif;
+cursor:pointer;
+}
+
+.camera-button:hover{background:#3a3a3a}
+
+.camera-status{
+min-height:16px;
+margin:0;
+color:#bbb;
+font-size:12px;
+}
+
+/* Reflow dashboard regions for tablet and phone screens. */
+@media(max-width:900px){
+body{padding:0}
+.dashboard{padding:22px}
+.top-layout{grid-template-columns:1fr}
+.metrics{grid-template-columns:repeat(3, minmax(0, 1fr))}
+.metric{height:150px;padding-top:24px;border-radius:30px}
+.weather-metric{height:auto;min-height:150px;padding:18px 8px 10px}
+.controls{grid-template-columns:repeat(2, minmax(0, 1fr))}
+.menu-toggle{grid-column:1/-1}
+.connection-status{grid-column:1/-1}
+.lower-panel{height:250px;border-radius:38px}
+.lower-panel.leaderboard-panel{border-radius:4px}
+.lower-panel.leaderboard-panel{height:auto}
+.lower-panel.camera-panel{height:380px}
+}
+
+@media(max-width:560px){
+body{padding:0}
+.dashboard{padding:16px}
+.start-card{padding:28px 22px;border-radius:22px}
+.start-card h1{font-size:27px}
+.finish-card{padding:28px 18px;border-radius:20px}
+.finish-results th,.finish-results td{padding:10px 8px;font-size:12px}
+.start-light-box{padding:28px 18px}
+.start-lights{padding:12px;gap:6px}
+.start-light-column{gap:6px;padding:7px 4px}
+.metrics{grid-template-columns:repeat(2, minmax(0, 1fr));gap:12px}
+.metric{height:140px;padding:22px 8px 12px}
+.metric-value{margin-top:12px;font-size:24px}
+.weather-metric{height:auto;min-height:140px;padding:18px 8px 10px}
+.weather-metric .metric-value{margin-top:8px;font-size:22px}
+.weather-condition{margin:2px 0 5px}
+.lower-layout{grid-template-columns:minmax(0,1fr);margin-top:16px}
+.lower-panel{height:230px}
+.lower-panel.leaderboard-panel{height:auto}
+.lower-panel.camera-panel{height:300px}
+.camera-connect-form{grid-template-columns:minmax(0, 1fr) auto}
+.camera-connect-form #stopCameraButton{grid-column:2}
+}
+
+@media(prefers-reduced-motion:reduce){
+.start-light-column i{transition:none}
+}
